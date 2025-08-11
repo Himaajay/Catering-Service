@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7shSSg6U1ZR7kh5WcXT2nm3awS2IApak",
+      authDomain: "catering-4abcc.firebaseapp.com",
+      projectId: "catering-4abcc",
+      storageBucket: "catering-4abcc.firebasestorage.app",
+      messagingSenderId: "491525242334",
+      appId: "1:491525242334:web:7772cb84a708ec8e16f14f"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Check login
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("welcome").innerText = "Welcome Admin, " + user.email;
+        loadOrders();
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    // Load orders from Firestore
+    async function loadOrders() {
+      const ordersList = document.getElementById("ordersList");
+      ordersList.innerHTML = "<li>Loading orders...</li>";
+
+      const querySnapshot = await getDocs(collection(db, "orders"));
+      ordersList.innerHTML = "";
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const li = document.createElement("li");
+        li.textContent = ${data.name} - ${data.event} - ${data.guests} guests;
+        ordersList.appendChild(li);
+      });
+
+      if (ordersList.innerHTML === "") {
+        ordersList.innerHTML = "<li>No orders yet</li>";
+      }
+    }
+
+    // Logout
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        signOut(auth).then(() => {
+          window.location.href = "login.html";
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h2>Admin Dashboard</h2>
+    <p id="welcome">Loading...</p>
+    <button id="logoutBtn">Logout</button>
+
+    <hr>
+    <h3>All Catering Orders</h3>
+    <ul id="ordersList"></ul>
+  </div>
+</body>
+</html>
